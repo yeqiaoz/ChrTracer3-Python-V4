@@ -984,8 +984,7 @@ elif step == 3:
         if val < 15: return "background-color: #fff3cd"
         return "background-color: #f8d7da"
 
-    _style_func = getattr(df_overview.style, "map", None) or df_overview.style.applymap
-    styled = _style_func(_drift_color, subset=["Max |X| (px)", "Max |Y| (px)"])
+    styled = df_overview.style.map(_drift_color, subset=["Max |X| (px)", "Max |Y| (px)"])
     st.dataframe(styled, use_container_width=True)
 
     # ── Per-FOV inspector ────────────────────────────────────
