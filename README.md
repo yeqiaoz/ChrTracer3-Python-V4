@@ -6,13 +6,6 @@ A Python reimplementation of the Matlab ChrTracer3 chromatin tracing pipeline fo
 
 The pipeline processes multi-hyb, multi-FOV 3D image stacks and produces 3D Gaussian-fitted spot positions for each genomic locus across hybridization rounds.
 
-```
-Step 0: Raw Data Conversion     .dat (Vutara SRX) --> .dax/.inf (ChrTracer3)
-Step 1: FOV-Level Drift Correction   FFT cross-correlation between hybs
-Step 2: Spot Detection               Local maxima in fiducial max-projection
-Step 3: 3D Gaussian Fitting          Per-spot fine 3D alignment + Gaussian fit
-```
-
 ## Requirements
 
 - Python 3.9+
@@ -23,15 +16,6 @@ Step 3: 3D Gaussian Fitting          Per-spot fine 3D alignment + Gaussian fit
 ```bash
 git clone https://github.com/yeqiaoz/ChrTracer3-Python-V4.git
 cd ChrTracer3-Python-V4
-```
-
-The pipeline source code is located at:
-```
-/dobby/yeqiao/software_code/ChrTracer3_py_app_V4_test/
-  orca_drift.py        # Step 0 (data conversion) + Step 1 (drift correction)
-  orca_fit.py          # Step 2 (spot detection) + Step 3 (3D Gaussian fitting)
-  run_pipeline_v4.py   # Pipeline orchestration script
-  ORCA_app.py          # Streamlit interactive UI
 ```
 
 ## Usage
@@ -151,4 +135,6 @@ See [CHANGELOG_v4_optimization.md](CHANGELOG_v4_optimization.md) for details and
 
 2. Boettiger AN, Murphy SE. Advances in chromatin imaging at kilobase-scale resolution. *Trends in Genetics*. 2020;36(4):273-287. doi:10.1016/j.tig.2019.12.010
 
-3. ORCA-public Matlab pipeline: https://github.com/BoettigerLab/ORCA-public
+3. Zhou Y, Jay A, Burget N, Friedrich T, Yoon S, Alsing J, Nir G, Grosschedl R, Vahedi G, Faryabi RB. Lineage-determining transcription factors constrain cohesin to drive multi-enhancer oncogene regulation. *Nat Cell Biol*. 2026;28(1):149-165. doi:10.1038/s41556-025-01827-2
+
+4. ORCA-public Matlab pipeline: https://github.com/BoettigerLab/ORCA-public
