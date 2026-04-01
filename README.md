@@ -143,6 +143,17 @@ Key fitting parameters (Matlab-matched defaults):
 | `fit_half_xy` | 4 px | Fitting sub-crop half-size XY |
 | `fit_half_z` | 6 slices | Fitting sub-crop half-size Z |
 
+## Test data
+
+A small test dataset is included in `test_data/` for verifying your installation (~41 MB). It contains a 256x256 crop from one FOV with 3 hybridization rounds (hybs 1, 3, 5).
+
+To run the full pipeline on the test data:
+
+1. Launch the app: `streamlit run ORCA_app.py`
+2. **Step 0**: Set raw data path to the `test_data/` folder, select Location-10, and click Convert
+3. **Step 1**: Load the converted ChrTracer3 folder
+4. Continue through Steps 2-8
+
 ## V4 optimization summary
 
 Six changes were made to match Matlab ChrTracer3 output:
