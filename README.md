@@ -8,10 +8,28 @@ The pipeline processes multi-hyb, multi-FOV 3D image stacks and produces 3D Gaus
 
 ## Requirements
 
-- Python 3.9+
-- Dependencies listed in `requirements.txt`
+- Python 3.9+ (3.11 recommended)
+- [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/) (recommended for environment management)
 
 ## Installation
+
+### 1. Install Miniconda (if not already installed)
+
+```bash
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+```
+
+Follow the prompts, then restart your terminal.
+
+### 2. Create the conda environment and install dependencies
+
+```bash
+conda create -n ChrTracerPy python=3.11 -y
+conda activate ChrTracerPy
+```
+
+### 3. Clone the repository and install packages
 
 ```bash
 git clone https://github.com/yeqiaoz/ChrTracer3-Python-V4.git
@@ -29,6 +47,11 @@ pip install -r requirements.txt
 | `run_pipeline_v4.py` | Headless pipeline orchestration script |
 
 ## Usage
+
+**Important:** Always activate the conda environment before running:
+```bash
+conda activate ChrTracerPy
+```
 
 ### Interactive mode (Streamlit UI)
 
