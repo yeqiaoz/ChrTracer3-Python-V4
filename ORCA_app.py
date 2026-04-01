@@ -183,6 +183,8 @@ if "olive_keep_hybs" not in st.session_state:
 
 if "step0_done" not in st.session_state:
     st.session_state.step0_done = False
+if "fov_list" not in st.session_state:
+    st.session_state.fov_list = []
 if "step0_running" not in st.session_state:
     st.session_state.step0_running = False
 
@@ -591,9 +593,19 @@ if step == 1:
     if output_path and not output_path.exists():
         st.caption(f"Output folder will be created: `{output_path}`")
 
-    # --- Number of locations ---
+    # --- Number of locations (auto-detected or manual) ---
+    # Auto-detect FOV numbers from first Readout folder
+    auto_fovs = []
+    if readout_dirs:
+        import re
+        for dax_file in sorted(readout_dirs[0].glob("ConvZscan_*.dax")):
+            m = re.search(r"ConvZscan_(\d+)\.dax", dax_file.name)
+            if m:
+                auto_fovs.append(int(m.group(1)))
+    if auto_fovs:
+        st.caption(f"Auto-detected FOVs: {auto_fovs}")
     num_locs = st.number_input("Number of locations (FOVs)", min_value=1,
-                               value=st.session_state.get("num_locs", 1), step=1)
+                               value=st.session_state.get("num_locs", len(auto_fovs) or 1), step=1)
 
     # --- Load button ---
     col1, col2 = st.columns([1, 4])
@@ -612,7 +624,18 @@ if step == 1:
                 st.session_state.exp_layout = df
                 st.session_state.chrtracer_dir = folder_path
                 st.session_state.output_dir = output_path
-                st.session_state.num_locs = int(num_locs)
+
+                # Auto-detect FOV numbers from DAX files in first Readout folder
+                import re as _re
+                detected_fovs = set()
+                for rd in readout_dirs:
+                    for dax_file in rd.glob("ConvZscan_*.dax"):
+                        m = _re.search(r"ConvZscan_(\d+)\.dax", dax_file.name)
+                        if m:
+                            detected_fovs.add(int(m.group(1)))
+                fov_list = sorted(detected_fovs) if detected_fovs else list(range(1, int(num_locs) + 1))
+                st.session_state.fov_list = fov_list
+                st.session_state.num_locs = len(fov_list)
 
                 # Scan for dax files
                 dax_files = {}
@@ -620,7 +643,7 @@ if step == 1:
                 for folder_name in df["FolderName"]:
                     readout_folder = folder_path / folder_name
                     loc_daxes = {}
-                    for loc in range(1, int(num_locs) + 1):
+                    for loc in fov_list:
                         dax_path = readout_folder / f"ConvZscan_{loc:02d}.dax"
                         if dax_path.exists():
                             loc_daxes[loc] = dax_path
@@ -727,10 +750,11 @@ elif step == 2:
 
     # Row 1: FOV selection + coarse/fine tuning
     col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 1, 1])
+    _fov_options = st.session_state.get("fov_list", list(range(1, num_locs + 1)))
     fov_select = col1.multiselect(
         "FOVs to process",
-        list(range(1, num_locs + 1)),
-        default=list(range(1, num_locs + 1)),
+        _fov_options,
+        default=_fov_options,
         format_func=lambda f: f"FOV {f:02d}",
     )
     ds_factor       = col2.number_input("Coarse downsample", min_value=1, value=4, step=1)
@@ -915,7 +939,7 @@ elif step == 3:
     reg_data = dict(st.session_state.reg_data)   # copy
 
     if output_dir is not None:
-        for fov in range(1, num_locs + 1):
+        for fov in st.session_state.get("fov_list", list(range(1, num_locs + 1))):
             if fov not in reg_data:
                 csv = output_dir / f"fov{fov:03d}_regData.csv"
                 if csv.exists():
@@ -1112,7 +1136,7 @@ elif step == 4:
 
     # ── Controls ─────────────────────────────────────────────
     col1, col2, col3 = st.columns(3)
-    fov_sel = col1.selectbox("FOV", list(range(1, num_locs + 1)),
+    fov_sel = col1.selectbox("FOV", st.session_state.get("fov_list", list(range(1, num_locs + 1))),
                               format_func=lambda f: f"FOV {f:02d}")
     hyb_sel = col2.selectbox("Hyb (readout round)", list(range(1, len(readout_folders) + 1)),
                               index=0, format_func=lambda h: f"Hyb {h:02d}")
@@ -1463,9 +1487,10 @@ elif step == 6:
     border     = c5.number_input("Border exclusion (px)", 0, 50, value=15, step=1,
                                    help="Should be ≥ crop half-width (default 15) to avoid edge artifacts")
 
+    _fov_options = st.session_state.get("fov_list", list(range(1, num_locs + 1)))
     fov_select = st.multiselect("FOVs to process",
-                                 list(range(1, num_locs + 1)),
-                                 default=list(range(1, num_locs + 1)),
+                                 _fov_options,
+                                 default=_fov_options,
                                  format_func=lambda f: f"FOV {f:02d}")
 
     col_run, col_back, _ = st.columns([1, 1, 5], vertical_alignment="bottom")
