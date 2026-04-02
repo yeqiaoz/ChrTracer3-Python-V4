@@ -1,0 +1,8 @@
+.DS_Store
+._.DS_Store
+__pycache__/
+analysis_test_fov1/
+run_test_fov1.py
+generate_slides.py
+visualize_fit_status.py
+.claude/
