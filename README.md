@@ -1,4 +1,4 @@
-# ChrTracer3 Python V4
+# ChrTracer π (ChrTracer3 Python V4)
 
 **Author:** Yeqiao Zhou, Faryabi Lab
 **Version:** V4 (Matlab-matched 3D fitting + improved drift correction)
