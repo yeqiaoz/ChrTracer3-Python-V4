@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(wait)",
+      "Bash(ps:*)",
+      "Bash(ls /dobby/yeqiao/analysis/ORCA_ChrTracer3_processing_optimization/240402_Granta519cl97_6hWO_MYC5p_30minHyb_30step_analysis/masked_images/ChrTracer3/analysis_260328_v4test/fov*_regData.csv)",
+      "Bash(ls /dobby/yeqiao/analysis/ORCA_ChrTracer3_processing_optimization/240402_Granta519cl97_6hWO_MYC5p_30minHyb_30step_analysis/masked_images/ChrTracer3/analysis_260328_v4test/fov*_selectSpots.csv)",
+      "Bash(ls /dobby/yeqiao/analysis/ORCA_ChrTracer3_processing_optimization/240402_Granta519cl97_6hWO_MYC5p_30minHyb_30step_analysis/masked_images/ChrTracer3/analysis_260328_v4test/fov*_allFits.csv)"
+    ]
+  }
+}
