@@ -75,7 +75,7 @@ def _find_peak_3d(vol: np.ndarray,
     wb = min(max_fit_width // 2, H // 2, W // 2)
     wz = min(max_fit_zdepth // 2, nZ // 2) - 1
     wb = max(0, min(wb, H, W))
-    wz = max(0, min(wz, H, W))  # Matlab caps wz at min(wz, rows, cols) too
+    wz = max(0, min(wz, nZ))  # cap Z border by nZ (not H,W spatial dims)
 
     # Interior region (excluding borders)
     z0 = wz;     z1 = max(nZ - wz, z0 + 1)
@@ -279,7 +279,7 @@ def fit_gaussian_3d(
             _gauss3d_flat,
             (xg.ravel(), yg.ravel(), zg.ravel()),
             data,
-            p0=[x0i, y0i, init_sxy, init_sxy, z0i, 2.5 * SQRT2, h0, bg0],
+            p0=[x0i, y0i, init_sxy, init_sxy, z0i, 1.5 * SQRT2, h0, bg0],
             bounds=(
                 [x0i - peak_bound, y0i - peak_bound, min_sigma, min_sigma,
                  z0i - peak_bound, min_sigma_z, 0,       0],
@@ -297,7 +297,7 @@ def fit_gaussian_3d(
                 rmse, resnorm)
     except Exception:
         resnorm = float(np.sum((vol.astype(float) - bg0) ** 2))
-        return x0i, y0i, init_sxy, init_sxy, z0i, 2.5 * SQRT2, h0, bg0, np.nan, resnorm
+        return x0i, y0i, init_sxy, init_sxy, z0i, 1.5 * SQRT2, h0, bg0, np.nan, resnorm
 
 
 # ---------------------------------------------------------------------------
@@ -324,46 +324,6 @@ def crop_volume(stack: np.ndarray, cx: int, cy: int, half: int,
 # ---------------------------------------------------------------------------
 # Fine sub-pixel alignment within crop (fiducial channel)
 # ---------------------------------------------------------------------------
-
-def _xcorr_shift_2d(ref_2d: np.ndarray, mov_2d: np.ndarray,
-                    upsample: int) -> tuple[float, float, float]:
-    """Compute sub-pixel shift between two 2D images via upsampled
-    unnormalized cross-correlation (matching Matlab CorrAlignFast).
-    Returns (dy, dx, xcorr_peak_value).
-    """
-    # Pad to same shape
-    H = max(ref_2d.shape[0], mov_2d.shape[0])
-    W = max(ref_2d.shape[1], mov_2d.shape[1])
-    def _pad(im):
-        if im.shape == (H, W):
-            return im
-        tmp = np.zeros((H, W), dtype=float)
-        tmp[:im.shape[0], :im.shape[1]] = im
-        return tmp
-    ref_p = _pad(ref_2d.astype(float))
-    mov_p = _pad(mov_2d.astype(float))
-
-    # Subtract edge baseline (matches Matlab Register3D thresholding)
-    for arr in (ref_p, mov_p):
-        edges = np.concatenate([arr[0, :], arr[-1, :], arr[:, 0], arr[:, -1]])
-        arr -= np.percentile(edges, 90)
-        arr[arr < 0] = 0
-
-    # Upsample
-    ref_up = zoom(ref_p, upsample, order=1)
-    mov_up = zoom(mov_p, upsample, order=1)
-
-    # Unnormalized cross-correlation (Matlab style)
-    F_ref = np.fft.fft2(ref_up)
-    F_mov = np.fft.fft2(mov_up)
-    xcorr = np.fft.fftshift(np.fft.ifft2(np.conj(F_ref) * F_mov).real)
-
-    cy, cx = np.array(xcorr.shape) // 2
-    pk     = np.unravel_index(np.argmax(xcorr), xcorr.shape)
-    dy     = (pk[0] - cy) / upsample
-    dx     = (pk[1] - cx) / upsample
-    return dy, dx, float(xcorr[pk])
-
 
 def fine_align_crop(ref_crop: np.ndarray, mov_crop: np.ndarray,
                     upsample: int = 4,

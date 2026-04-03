@@ -4,7 +4,6 @@ ChrTracer π full pipeline — drift + spot detection + fitting (2026-03-30).
 Processes all 20 FOVs. Skips drift correction for FOVs that already have regData.csv.
 Optimized to match Matlab ChrTracer3 output (see CHANGELOG_v4_optimization.md).
 """
-import gc
 import sys
 import time
 from pathlib import Path

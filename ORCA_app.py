@@ -1487,6 +1487,10 @@ elif step == 6:
     border     = c5.number_input("Border exclusion (px)", 0, 50, value=15, step=1,
                                    help="Should be ≥ crop half-width (default 15) to avoid edge artifacts")
 
+    ref_hyb_det = st.number_input("Reference hyb for detection", min_value=1,
+                                   max_value=len(readout_folders), value=1, step=1,
+                                   help="Which hyb round to use for the fiducial max-projection")
+
     _fov_options = st.session_state.get("fov_list", list(range(1, num_locs + 1)))
     fov_select = st.multiselect("FOVs to process",
                                  _fov_options,
@@ -1514,7 +1518,7 @@ elif step == 6:
         status_text  = st.empty()
         live_img     = st.empty()
 
-        folder_ref = readout_folders[0]
+        folder_ref = readout_folders[int(ref_hyb_det) - 1]
 
         for i, fov in enumerate(fov_select):
             status_text.text(f"FOV {fov:02d} — loading max-projection…")
@@ -2270,13 +2274,13 @@ elif step == 9:
         st.session_state.current_step = 8
         st.rerun()
     with col_fwd:
-        if _nav_button("Proceed to Combine, Impute & QC →"):
+        if _nav_button("Proceed to Impute & QC →"):
             st.session_state.current_step = 10
             st.rerun()
 
 
 # ============================================================
-# STEP 10 — Combine, Impute & QC
+# STEP 10 — Impute & QC
 # ============================================================
 
 elif step == 10:
@@ -2285,7 +2289,7 @@ elif step == 10:
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
 
-    st.header("Step 10 — Combine, Impute & QC")
+    st.header("Step 10 — Impute & QC")
     st.markdown(
         "- Annotate each readout step as **keep** or **exclude** based on Step 9 selection, "
         "linearly impute missing keep-steps per trace, and save `_imputed.csv`.\n"
@@ -2481,7 +2485,6 @@ elif step == 10:
     bridge_counts = keep_ok.groupby("trace_id").size()
     total_traces  = merged_df["trace_id"].nunique()
     n_bins = min(len(keep_hybs), 30)
-    blues  = [colorsys.hsv_to_rgb(0.6, s, 0.85) for s in np.linspace(0.1, 0.9, n_bins)]
     ax.hist(
         bridge_counts.values,
         bins=np.arange(0.5, len(keep_hybs) + 1.5),

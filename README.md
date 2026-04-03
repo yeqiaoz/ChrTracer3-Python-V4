@@ -100,7 +100,7 @@ The app walks through 11 steps. Each step can be re-entered via the sidebar.
 | 7 | Validate Picked Spots | Add/remove spots interactively |
 | 8 | Fit All | Batch 3D Gaussian fitting: all spots x all hybs x all FOVs |
 | 9 | Export to OLIVE | Filter hybs (odd/even/all/custom), export `allFits_OLIVE_*.csv` |
-| 10 | Combine, Impute & QC | Linear imputation; per-step and per-trace QC plots |
+| 10 | Impute & QC | Linear imputation; per-step and per-trace QC plots |
 
 ---
 

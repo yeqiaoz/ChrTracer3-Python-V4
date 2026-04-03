@@ -16,6 +16,7 @@ Output columns match ChrTracer3 Matlab:
 
 from __future__ import annotations
 
+import gc
 import warnings
 from pathlib import Path
 
@@ -53,6 +54,13 @@ def read_dax(dax_path: Path, height: int, width: int, n_frames: int) -> np.ndarr
     (row-major within each frame). Compatible with Matlab ChrTracer3.
     """
     raw = np.fromfile(dax_path, dtype="<u2")
+    expected = n_frames * height * width
+    if raw.size != expected:
+        raise ValueError(
+            f"{dax_path.name}: expected {expected} pixels "
+            f"({n_frames}×{height}×{width}) but file contains {raw.size} "
+            f"({raw.size * 2} bytes). File may be corrupt or truncated."
+        )
     return raw.reshape((n_frames, height, width))
 
 
@@ -134,7 +142,7 @@ def _corr_align_rotate_scale(im1: np.ndarray, im2: np.ndarray,
 
 
 def coarse_shift(ref_proj: np.ndarray, mov_proj: np.ndarray,
-                 ds: int = 4, max_size: int = 400) -> tuple[int, int, np.ndarray]:
+                 max_size: int = 400) -> tuple[int, int, np.ndarray]:
     """Integer-pixel shift from downsampled cross-correlation.
 
     Matches Matlab CorrAlignFast coarse step:
@@ -177,8 +185,7 @@ def _apply_shift_2d(img: np.ndarray, dy: float, dx: float) -> np.ndarray:
 def fine_shift(ref_proj: np.ndarray, mov_proj: np.ndarray,
                coarse_dy: int, coarse_dx: int,
                crop: int = 200, max_size: int = 400,
-               fine_max_shift: int = 30,
-               spot_percentile: float = 75) -> tuple[int, int, np.ndarray]:
+               fine_max_shift: int = 30) -> tuple[int, int, np.ndarray]:
     """Fine-shift matching Matlab CorrAlignFast fine step.
 
     - Apply coarse correction to mov
@@ -304,11 +311,10 @@ def correct_one_fov_stream(
     ref_hyb: int = 1,
     fid_ch: int = 0,
     n_ch: int = 2,
-    ds: int = 4,
     crop: int = 150,
-    spot_percentile: float = 75,
     max_fine_shift: int = 5,
     save_figures: bool = True,
+    **_ignored,
 ):
     """Generator: process one hyb per iteration, yielding progress info.
 
@@ -379,7 +385,7 @@ def correct_one_fov_stream(
             )
 
         del curr_proj, xcorr_zoom
-        import gc; gc.collect()
+        gc.collect()
 
         yield hyb, n_hybs, row, fig_path, list(rows)
 
@@ -389,14 +395,14 @@ def correct_one_fov_stream(
 
 
 def correct_one_fov(fov, readout_folders, output_dir, ref_hyb=1,
-                    fid_ch=0, n_ch=2, ds=4, crop=150, spot_percentile=75,
-                    max_fine_shift=5, save_figures=True) -> pd.DataFrame:
+                    fid_ch=0, n_ch=2, crop=150,
+                    max_fine_shift=5, save_figures=True, **kw) -> pd.DataFrame:
     """Non-streaming wrapper — runs to completion and returns DataFrame."""
     rows = []
     for hyb, n_hybs, row, fig_path, _ in correct_one_fov_stream(
         fov, readout_folders, output_dir,
         ref_hyb=ref_hyb, fid_ch=fid_ch, n_ch=n_ch,
-        ds=ds, crop=crop, spot_percentile=spot_percentile,
+        crop=crop,
         max_fine_shift=max_fine_shift, save_figures=save_figures,
     ):
         rows.append(row)
