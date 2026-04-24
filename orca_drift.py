@@ -242,11 +242,14 @@ def fine_shift(ref_proj: np.ndarray, mov_proj: np.ndarray,
 def _overlay_rgb(ref: np.ndarray, mov: np.ndarray) -> np.ndarray:
     """Blend ref (red) and mov (cyan) into an RGB image for display.
 
-    Both images are normalized on the same scale (derived from ref) so that
-    zero-padded borders introduced by nd_shift don't inflate the mov baseline.
+    Each channel is normalized to its own [p0.5, p99.5] window so that
+    photobleaching of the fiducial over long hyb runs (common in ORCA)
+    doesn't progressively wash the cyan plane out to red. The zero-padded
+    border from nd_shift lands below mov's own p0.5 and clips to 0, which
+    is correct (we don't want synthetic edge to contribute cyan signal).
     """
-    lo, hi = np.percentile(ref, 0.5), np.percentile(ref, 99.5)
     def _norm(a):
+        lo, hi = np.percentile(a, 0.5), np.percentile(a, 99.5)
         return np.clip((a - lo) / (hi - lo + 1e-10), 0, 1).astype(np.float32)
 
     r   = _norm(ref)
